@@ -1,0 +1,16 @@
+# Data files (re-downloadable, can be large)
+data/
+
+# Python cache
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Environment
+.env
+venv/
+.venv/
+
+# Editor / OS junk
+.DS_Store
+.vscode/
