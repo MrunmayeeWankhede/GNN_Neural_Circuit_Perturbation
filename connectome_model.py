@@ -107,16 +107,19 @@ def graph_to_matrix(G):
 
     return W, nodes
 
+#row-normalize so each neuron's total input sums to 1
+#rows with zero input will stay all zeros (no division by zero)
+def normalize_weights(W):
+    row_sums = W.sum(axis=1, keepdims=True) #shape (n, 1)
+    row_sums[row_sums == 0] = 1.0 #avoid division by zero for neurons with no inputs
+    W_normalized = W / row_sums
+
+    return W_normalized
 
 df = load_connectome(output_path)
 G = build_connectome_graph(df)
 W, nodes = graph_to_matrix(G)
-
-print("Matrix shape:", W.shape)
-print("Number of nodes:", len(nodes))
-print("Non-zero entries in W:", np.count_nonzero(W))
-print("Edges in graph:", G.number_of_edges())
-
+W = normalize_weights(W)
 import matplotlib.pyplot as plt
 
 #visualize the graph - this is a dense graph so just showing nodes and edges without labels
@@ -136,7 +139,7 @@ plt.savefig(results_dir / "connectome_full.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("Saved connectome_full.png")
 
-# choose a focus neuron and visualize its neighborhood (directly connected neurons)
+#choose a focus neuron and visualize its neighborhood (directly connected neurons)
 focus = "AVAL"
 neighbors = set(G.successors(focus)) | set(G.predecessors(focus))
 sub = G.subgraph({focus} | neighbors)
@@ -158,3 +161,81 @@ plt.axis("off")
 plt.savefig(results_dir / "neighborhood_AVAL.png", dpi=150, bbox_inches="tight")
 plt.close()
 print(f"Saved neighborhood_AVAL.png ({len(neighbors)} neighbors)")
+
+#THE SIMULATOR
+#define all sensory neurons in the connectome
+#TODO: verify this list with the literature 
+sensory_neurons = [
+    "ALML", "ALMR", "AVM", "PLML", "PLMR",            #gentle touch
+    "ASEL", "ASER", "ASHL", "ASHR",                    #chemosensation
+    "AWAL", "AWAR", "AWBL", "AWBR", "AWCL", "AWCR",     #odor sensing
+    "AFDL", "AFDR",                                     #thermosensation
+    "AQR", "PQR", "URXL", "URXR",                       #oxygen sensing
+    "ADLL", "ADLR", "ASJL", "ASJR", "ASKL", "ASKR",    #other sensory
+]
+
+#iterate linear-threshold dynamics until activity converges
+def run_dynamics(W, nodes, sensory_idx, knockout_idx=None, max_iter=500, tol=1e-6):
+    #returns the steady-state activity vector
+    #pass knockput_idx=None for healthy condition
+    #an index for knockout
+
+    n = len(nodes)
+    x = np.zeros(n) #initial activity is zero
+    x[sensory_idx] = 1.0 #activate sensory neurons
+
+    for i in range(max_iter):
+        #weigjted input, squashed to range [0, 1] by tanh nonlinearity
+        x_new = np.tanh(W @ x) #update activity based on inputs and weights
+        x_new[sensory_idx] = 1.0 #keep sensory neurons active
+
+        if knockout_idx is not None:
+            x_new[knockout_idx] = 0.0 #dead neuron sends no signal
+
+        if np.sum(np.abs(x_new - x)) < tol: #converged or not?
+            x = x_new
+            break
+        x = x_new
+
+    return x
+
+#comapre a knocked-out steady state to the healthy one
+def cascade_severity(baseline, perturbed, fail_threshold=0.1):
+    #returns both severity measures as a dictionary
+    drop = baseline - perturbed
+    total_activity_lost = float(np.sum(np.clip(drop, 0, None))) #total activity lost across all neurons
+
+    failed_neurons = (baseline >= fail_threshold) & (perturbed < fail_threshold)
+    failure_count = int(np.sum(failed_neurons)) #number of neurons that fail (drop below threshold
+    
+    return {"total_activity_lost": total_activity_lost, "failure_count": failure_count}
+
+
+index = {n: i for i, n in enumerate(nodes)}
+
+print("Matrix shape:", W.shape, "Non-zero entries in W:", np.count_nonzero(W), "Edges in graph:", G.number_of_edges())
+
+#sensory neurons present in our graph
+sensory_idx = [index[s] for s in sensory_neurons if s in index]
+print("Sensory neurons in graph:", [nodes[i] for i in sensory_idx], "Count:", len(sensory_idx))
+
+#healthy steady state
+baseline = run_dynamics(W, nodes, sensory_idx)
+print("Baseline total activity:", np.sum(baseline))
+
+#knock out AVAL and see the effect
+k = index["AVAL"]
+perturbed = run_dynamics(W, nodes, sensory_idx, knockout_idx=k)
+print("AVAL knockout severity:", cascade_severity(baseline, perturbed))
+
+#compare knocout of other neurons
+print()
+print("Comparing knockouts of other neurons:")
+for name in ["AVAL", "AVAR", "AVBL", "PVCL", "ASEL", "RIH", "RIS", "VA01", "DA01"]:
+    if name not in index:
+        print(f"{name} not in graph, skipping")
+        continue
+    m = run_dynamics(W, nodes, sensory_idx, knockout_idx=index[name])
+    s = cascade_severity(baseline, m)
+    print(" ", name, "- activity_lost =", round(s["total_activity_lost"], 2),
+          ", failures =", s["failure_count"])
