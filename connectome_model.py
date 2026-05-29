@@ -239,3 +239,38 @@ for name in ["AVAL", "AVAR", "AVBL", "PVCL", "ASEL", "RIH", "RIS", "VA01", "DA01
     s = cascade_severity(baseline, m)
     print(" ", name, "- activity_lost =", round(s["total_activity_lost"], 2),
           ", failures =", s["failure_count"])
+
+
+def generate_dataset(W, nodes, sensory_idx, baseline):
+    #run a knockout for each neuron
+    #return a datframe of severities
+    #rows = neurons, columns = severity measures
+    rows = []
+    for i, name in enumerate(nodes):
+        perturbed = run_dynamics(W, nodes, sensory_idx, knockout_idx=i)
+        severity = cascade_severity(baseline, perturbed)
+        rows.append({"neuron": name, "total_activity_lost": severity["total_activity_lost"],
+                     "failure_count": severity["failure_count"]})
+        
+        if (i+1) % 50 == 0:
+            print(" Done", i+1, "out of", len(nodes))
+
+    return pd.DataFrame(rows)
+
+print()
+print("Generating full knockout dataset")
+dataset = generate_dataset(W, nodes, sensory_idx, baseline)
+
+output_csv = data_path / "knockout_severity_dataset.csv"
+dataset.to_csv(output_csv, index=False)
+print("Saved dataset to", output_csv)
+print()
+print("Top 10 most critical neurons (by total activity lost):")
+print(dataset.sort_values("total_activity_lost", ascending=False).head(10))
+
+print()
+print("Severity distribution across all 297 neurons:")
+print(dataset["total_activity_lost"].describe())
+print()
+print("Failure count distribution:")
+print(dataset["failure_count"].value_counts().sort_index())
