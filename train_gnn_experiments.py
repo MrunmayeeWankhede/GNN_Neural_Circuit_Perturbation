@@ -2,6 +2,10 @@
 #severity determined from local neighborhood structure
 #comapres R^2 score against linear baseline (0.425)
 
+'''Regularization experiments testing why the default GCN underperforms.
+Currently configured for Experiment C. To reproduce others, modify
+the indicated section in Chunks 2-3.'''
+
 #CHUNK 1: imports and data loading
 #import packages
 import pandas as pd
