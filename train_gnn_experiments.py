@@ -68,10 +68,10 @@ print("PyG Data object:", data)
 #CHUNK 3: define GNN model
 class GCN(torch.nn.Module):
     #this is a simple 2-layer GCN that maps node features to predicted severity
-    def __init__(self, num_features, hidden_size=16, dropout=0.3):
+    def __init__(self, num_features, hidden_size=16, dropout=0.1):
         super().__init__()
         self.conv1 = GCNConv(num_features, hidden_size) #graph convolution layer: aggregate neighbor features and apply linear transformation, output shape (num_nodes x hidden_size)
-        self.conv2 = GCNConv(hidden_size, hidden_size) #second graph convolution layer, takes output of first layer as input, output shape (num_nodes x hidden_size)
+        #self.conv2 = GCNConv(hidden_size, hidden_size) #second graph convolution layer, takes output of first layer as input, output shape (num_nodes x hidden_size)
         self.out = torch.nn.Linear(hidden_size, 1) #output layer for regression
         self.dropout = dropout #dropout rate for regularization
 
@@ -81,12 +81,12 @@ class GCN(torch.nn.Module):
         #layer 1: aggregate + transform + non-linearity + dropout
         h = self.conv1(x, edge_index)
         h = F.relu(h) #turns negative values to 0, keeps positive values unchanged
-        h = F.dropout(h, p=self.dropout, training=self.training) #masking - 30% of the nodes are randomly set to 0 during training, helps prevent overfitting
+        h = F.dropout(h, p=self.dropout, training=self.training) #masking - 10% of the nodes are randomly set to 0 during training, helps prevent overfitting
 
         #layer 2: aggregate + transform + non-linearity + dropout
-        h = self.conv2(h, edge_index)
-        h = F.relu(h)
-        h = F.dropout(h, p=self.dropout, training=self.training) 
+        #h = self.conv2(h, edge_index)
+        #h = F.relu(h)
+        #h = F.dropout(h, p=self.dropout, training=self.training) 
 
         #final projection to 1 output per node
         output = self.out(h).squeeze(-1) #shape (num_nodes,)
@@ -149,6 +149,7 @@ def train_one_split(data, seed, n_epochs=200, lr=0.01, verbose=False):
         test_r2 = r2_score(data.y[test_mask].numpy(), pred[test_mask].numpy())
     return test_r2
 
+print("EXPERIMENT C: 1 GCN layer, dropout=0.1")
 #run 5 random splits and average test R^2
 print()
 print("Training GCN on 5 random splits...")
