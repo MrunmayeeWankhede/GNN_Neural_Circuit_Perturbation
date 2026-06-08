@@ -138,6 +138,11 @@ for explanation of GNN concepts, debugging, and report drafting.
 All experimental choices, code execution, and final interpretations
 are my own.
 
+## References and resources
+
+- Stanford CS224W: Machine Learning with Graphs (Leskovec) - YouTube Lectures.
+- PyTorch Geometric documentation: https://pytorch-geometric.readthedocs.io/
+
 ## 👩‍💻 Author
 Mrunmayee Wankhede \
 MS-QBB @ CMU
