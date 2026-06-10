@@ -38,6 +38,19 @@ real connectome.
 - **`error_analysis.py`** — compares per-neuron errors between the
   linear baseline and the GCN to understand where each model fails.
 
+## Workflow
+```
+Load connectome
+      ↓
+Build graph (297 neurons, 3638 synapses)
+      ↓
+Simulate knockouts + Compute centralities
+      ↓
+Train models (Linear, GBM, GCN)
+      ↓
+Error analysis
+```
+
 ## Key findings
 
 - The C. elegans chemical connectome decomposes into a 275-neuron
