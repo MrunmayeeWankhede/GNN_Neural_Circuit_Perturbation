@@ -105,18 +105,17 @@ I am currently working on extending this project in two directions:
 
 **Better features for cascade prediction.** The error analysis showed
 that both baselines and the GCN systematically under-predict sensory
-neurons — their criticality comes from being clamped input sources,
+neurons. Their criticality comes from being clamped input sources,
 which the centralities and graph topology alone do not encode. The
 immediate next step is adding an explicit "sensory neuron" feature
-and a separate "downstream-of-sensory" feature to see how much of the
-residual error closes.
+and a separate "downstream-of-sensory" feature to see how much of the error closes.
 
-**Model comparison fork.** The current project answers one specific
-question — does a GCN beat centralities? A separate forked repository
+**Model comparison.** The current project answers one specific
+question: does a GCN beat centralities? A separate forked repository
 will broaden the question: what is the best achievable prediction
 from local network structure, comparing GCNs (GraphSAGE, GAT, GIN)
 against tree ensembles, MLPs, and ensembled approaches under a
-matched hyperparameter-tuning protocol. This new repository would aim to address "what is the
+matched hyperparameter-tuning analysis. This new repository would try to answer "what is the
 ceiling here?" rather than "does this one model help?"
 
 Longer-term directions I find genuinely interesting:
@@ -125,13 +124,13 @@ Longer-term directions I find genuinely interesting:
   chemical synapses only and treats all as excitatory. Adding the
   electrical (gap-junction) network and inhibitory information from
   recent C. elegans literature would make the dynamics model more
-  biologically faithful and might surface different critical
+  biologically correct and might show different critical
   neurons.
 
 - **Pairwise and k-node knockouts.** Real biological failures often
-  involve multiple neurons. Predicting which *combinations* cause
+  involve multiple neurons. Predicting which "combinations" cause
   catastrophic cascades is a richer and less-studied problem than
-  single-neuron criticality.
+  single-neuron failure studies.
 
 - **Other connectomes.** The same pipeline would work on the
   Drosophila hemibrain or full FlyWire connectome, which became
@@ -140,9 +139,9 @@ Longer-term directions I find genuinely interesting:
   larger nervous system.
 
 - **The inverse problem.** Rather than predicting cascade severity
-  from neuron identity, ask: given a desired downstream effect, what
+  from neuron identity, we can ask the question: given a downstream effect, what
   is the minimum set of neurons to perturb? This connects to network
-  controllability and has analogues in therapeutic targeting, a area I find particuarly compelling.
+  controllability and has analogues in therapeutic targeting, an area I find particuarly compelling.
 
 ## Acknowledgements
 
