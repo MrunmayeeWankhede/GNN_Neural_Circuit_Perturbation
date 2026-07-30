@@ -1,0 +1,11 @@
+  applied negative sign to 26/26 inhibitory neurons
+  applied negative sign to 26/26 inhibitory neurons
+  applied negative sign to 26/26 inhibitory neurons
+closed_form_R2 HIGH  -> task is degenerate, nothing to learn
+closed_form_R2 LOW   -> label is not a simple function of the graph
+                             variant  closed_form_R2  GBM_R2  saturated
+unsigned, gain 1, global  [ORIGINAL]           0.730   0.713      0.000
+            signed,   gain 1, global           0.740   0.694      0.000
+             unsigned, gain 1, motor           0.130   0.443      0.000
+signed,   gain 1, motor   [PROPOSED]           0.156   0.375      0.000
+             signed,   gain 3, motor          -0.057   0.255      0.899

@@ -1,0 +1,27 @@
+validation of severity labels
+
+bilateral pairs found: 67
+  Pearson  r = 0.962
+  Spearman r = 0.903
+median relative L/R difference: 24.9%
+largest asymmetries (note these are all near-zero neurons):
+    PDEL/PDER: 0.007 vs 0.080
+    PHCL/PHCR: 0.079 vs 0.654
+    AVJL/AVJR: 0.152 vs 0.551
+    ASIL/ASIR: 0.070 vs 0.021
+    PVWL/PVWR: 0.018 vs 0.058
+
+top 10 by severity: AVAR, AVAL, PVCR, PQR, AVM, AVDR, AVG, HSNR, PVDL, PHAL
+of these, mechanosensory escape circuit members: 5/10 -> AVAR, AVAL, PVCR, AVM, AVDR
+rank of each known circuit member:
+ALML   rank  38 / 297severity 0.837
+ALMR   rank  42 / 297severity 0.766
+AVAL   rank   2 / 297severity 4.974
+AVAR   rank   1 / 297severity 5.439
+AVBL   rank  23 / 297severity 1.126
+AVBR   rank  50 / 297severity 0.642
+AVDL   rank  12 / 297severity 1.407
+AVDR   rank   6 / 297severity 1.710
+AVM    rank   5 / 297severity 1.766
+PVCL   rank  11 / 297severity 1.449
+PVCR   rank   3 / 297severity 2.175
