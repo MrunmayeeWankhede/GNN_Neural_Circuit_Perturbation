@@ -1,5 +1,9 @@
 # Predicting Neural Circuit Fragility with Graph Neural Networks
 
+> **Work in progress - July 2026.** This project is currently being revised.
+> The results below are from the original version and are being re-run
+> following a review of the benchmark design. 
+> 
 A small summer project exploring whether graph neural networks can predict which neurons in the C. elegans nervous system are critical, meaning their failure cascades to disrupt large parts of the network, better than classical graph centrality measures can.
 
 ## The question
