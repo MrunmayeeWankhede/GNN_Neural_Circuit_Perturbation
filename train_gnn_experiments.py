@@ -12,6 +12,8 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 from pathlib import Path
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import RepeatedKFold
 import torch
 import torch.nn.functional as F
 from torch_geometric.data import Data
@@ -29,7 +31,7 @@ data_dir = project_dir /"data"
 raw = load_connectome(data_dir / "herm_full_edgelist.csv")
 G = build_connectome_graph(raw)
 
-severity = pd.read_csv(data_dir / "knockout_severity_dataset.csv")
+severity = pd.read_csv(data_dir / "knockout_severity_motor.csv")
 centralities = pd.read_csv(data_dir / "neuron_centralities.csv")
 
 #merge like we did before
@@ -56,11 +58,14 @@ df_indexed = df.set_index("neuron").loc[nodes] #align with node order
 
 feature_cols = ["in_degree", "out_degree", "betweenness", "eigenvector", "pagerank"]
 features = df_indexed[feature_cols].fillna(0).to_numpy(dtype=np.float32) #num_nodes x num_features
+x = df[feature_cols].values
+x = StandardScaler().fit_transform(x) #standardize features
+data = Data(x=torch.tensor(x, dtype=torch.float32), edge_index=edge_index)
 x = torch.tensor(features, dtype=torch.float32)
 print("x shape:", x.shape)
 
 #y: severity label per neuron (num_nodes x 1)
-labels = df_indexed["total_activity_lost"].to_numpy(dtype=np.float32) #num_nodes x 1
+labels = df_indexed["severity"].to_numpy(dtype=np.float32) #num_nodes x 1
 y = torch.tensor(labels, dtype=torch.float32)
 print("y shape:", y.shape)
 
