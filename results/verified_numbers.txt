@@ -1,0 +1,102 @@
+applied negative sign to 26/26 inhibitory neurons
+graph: 297 neurons, 3638 synapses
+sensory clamped: 25   motor readout: 93
+baseline convergence: signed iter 174, unsigned iter 140
+
+==========================================================================
+CHAPTER 2.3  |  How nonlinear is tanh actually being? (report: median 0.49, ~9% bend)
+==========================================================================
+MATCH  median tanh input        = 0.4862
+MATCH  mean relative bend       = 0.0885  (8.9%)
+       90th pct input           = 0.7427
+
+==========================================================================
+CHAPTER 4.5  |  Did clip(drop, 0, None) discard anything? (report: exactly zero)
+==========================================================================
+MATCH  max activity INCREASE anywhere, unsigned model = 0.000e+00
+       (zero confirms the v1 model was provably monotone)
+
+==========================================================================
+CHAPTER 4.6  |  Pairwise epistasis (report: median 0.52% unsigned, 0.59% signed)
+==========================================================================
+MATCH  unsigned: median |interaction| as % of additive = 0.510%   (max 0.7894)
+MATCH  signed  : median |interaction| as % of additive = 0.621%   (max 3.2945)
+
+==========================================================================
+CHAPTER 7.2-7.3  |  Self-inclusion inflation (report: 62.6% of motor severity, r=0.96)
+==========================================================================
+MATCH  median self-contribution, motor neurons = 62.6%
+MATCH  correlation between the two labels      = 0.9590
+MATCH  'is_motor' flag ALONE predicts severity: CV R2 = -0.040
+
+==========================================================================
+CHAPTER 8.4  |  failure_count is unusable (report: 96/297 -> 14/297, 283 zeros)
+==========================================================================
+MATCH  median motor baseline activity = 0.342
+MATCH  drop needed to cross 0.1 threshold = 71%
+MATCH  knockouts with >=1 failure, self INCLUDED = 96/297
+MATCH  knockouts with >=1 failure, self EXCLUDED = 14/297
+MATCH  neurons with failure_count == 0          = 283/297
+
+==========================================================================
+CHAPTER 9.2-9.3  |  Direct vs indirect damage (report: 40.3%/59.7%, r=0.764)
+==========================================================================
+MATCH  share of damage at DIRECT neighbours = 40.3%
+MATCH  share further downstream            = 59.7%
+MATCH  corr(direct, indirect): Pearson 0.764  Spearman 0.844
+
+==========================================================================
+CHAPTER 9.5  |  Network depth (report: 93/138/46/1, 19 unreachable)
+==========================================================================
+MATCH  0 hops from motor set:  93 neurons
+MATCH  1 hops from motor set: 138 neurons
+MATCH  2 hops from motor set:  46 neurons
+MATCH  3 hops from motor set:   1 neurons
+MATCH  unreachable                :  19 neurons
+MATCH  non-motor median = 1 hops, max = 3
+
+==========================================================================
+CHAPTER 8.1  |  Unshuffled CV folds (report: 0.278 vs 0.538, on RAW target)
+==========================================================================
+MATCH  cv=5 alphabetical, RAW   linear CV R2 = -0.162
+MATCH  KFold shuffled,    RAW   linear CV R2 = +0.188
+MATCH  cv=5 alphabetical, LOG   linear CV R2 = +0.326
+MATCH  KFold shuffled,    LOG   linear CV R2 = +0.478
+
+==========================================================================
+CHAPTER 8.3  |  Outlier-dominated metric (report: 0.622 with AVAL/AVAR, 0.093 without)
+==========================================================================
+MATCH  folds CONTAINING AVAL/AVAR: mean R2 = +0.605  (n=18)
+MATCH  folds without them        : mean R2 = +0.171  (n=32)
+       median severity = 0.232, AVAL = 4.974, AVAR = 5.439
+
+==========================================================================
+CHAPTER 8.5  |  Eigenvector centrality variants (report: 0.28-0.56 spread)
+==========================================================================
+MATCH  directed SCC, in-edges, unweighted (repo)  corr=+0.397  linear R2=0.492
+MATCH  directed SCC, in-edges, weighted           corr=+0.029  linear R2=0.469
+MATCH  directed SCC, out-edges, unweighted        corr=+0.456  linear R2=0.510
+MATCH  undirected LCC, unweighted                 corr=+0.661  linear R2=0.516
+MATCH  undirected LCC, weighted                   corr=+0.711  linear R2=0.649
+       NOTE: report's table used the RAW target; these use LOG. Quote these.
+
+==========================================================================
+CHAPTER 12.5  |  Residual structure (report: sensory +0.006, posterior sensory +0.356)
+==========================================================================
+MATCH  mean residual, clamped sensory (25) = +0.007
+MATCH  mean residual, all others      (272) = +0.000
+MATCH  mean residual, posterior sensory (12) = +0.358
+MATCH  corr(residual, hop distance)          = -0.121
+       posterior set: ['PDEL', 'PDER', 'PHAL', 'PHAR', 'PHBL', 'PHBR', 'PHCL', 'PHCR', 'PQR', 'PVDL', 'PVDR', 'PVM']
+
+==========================================================================
+CHAPTER 8.6  |  GCN feature standardisation (report: 0.246 -> 0.457 -- YOURS WILL DIFFER)
+==========================================================================
+YOURS  GCN, UNSTANDARDISED features = 0.294
+YOURS  GCN, standardised features   = 0.463
+       (effect should replicate; quote YOUR numbers, not the report's)
+
+==========================================================================
+done. Numbers marked MATCH should agree with the report.
+Numbers marked YOURS supersede the report's values.
+==========================================================================
