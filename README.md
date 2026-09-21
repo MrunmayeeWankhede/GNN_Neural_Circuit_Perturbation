@@ -1,5 +1,13 @@
 # Predicting Neural Circuit Fragility with Graph Neural Networks
 
+**New experiment: circuit reduction.** The [minimum viable circuit guide](docs/circuit_pruning.md)
+extends the v2 model from single-neuron severity prediction to progressive removal
+with fixed inputs, outputs, and weights. It compares greedy search, static severity,
+outgoing strength, and seeded random priorities on multiple synthetic inputs, with
+held-out response checks and a circuit-size/fidelity plot. Start with
+`python run_pruning.py`; this entry point uses `connectome_model_v2.py` explicitly.
+The original experiments below remain separate.
+
 When a single neuron stops working, what happens to the rest of the nervous system?
 Most neurons, when removed, barely matter. A few cause large cascades. Can we predict
 which is which from the wiring diagram?

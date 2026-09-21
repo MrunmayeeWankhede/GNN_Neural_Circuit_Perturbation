@@ -14,3 +14,7 @@ venv/
 # Editor / OS junk
 .DS_Store
 .vscode/
+
+# New pruning runs are local; the curated pilot is versioned.
+results/pruning_*/
+!results/pruning_pilot/
