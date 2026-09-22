@@ -1,0 +1,26 @@
+{
+  "seed": 42,
+  "best_epoch": 300,
+  "epochs_run": 300,
+  "seconds": 11.433306764000008,
+  "splits": {
+    "train": {
+      "log_target_mse": 0.014340152032673359,
+      "log_target_r2": 0.8897660374641418,
+      "spearman": 0.9314463820922919,
+      "candidate_labels": 3113
+    },
+    "validation": {
+      "log_target_mse": 0.007327522616833448,
+      "log_target_r2": 0.9334129095077515,
+      "spearman": 0.948990220090478,
+      "candidate_labels": 978
+    },
+    "test": {
+      "log_target_mse": 0.007911555469036102,
+      "log_target_r2": 0.9256296157836914,
+      "spearman": 0.9360453667103505,
+      "candidate_labels": 978
+    }
+  }
+}

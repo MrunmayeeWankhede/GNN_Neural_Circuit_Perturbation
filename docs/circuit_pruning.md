@@ -24,6 +24,12 @@ SHA-256. No PyTorch installation or trained model is required for this experimen
 Existing output directories must be empty, so each new experiment needs a new
 `--output` path. This avoids overwriting a previous result.
 
+The test suite runs offline. In addition to simulator invariants, it checks the
+CLI on a temporary synthetic edge list, verifies that existing results cannot be
+overwritten, and recomputes the pilot's reported errors from its saved output
+vectors. These export checks do not rerun the full connectome search or establish
+biological validity.
+
 The default searches for up to 50 removals. That is a runtime cap, not a minimum.
 To allow the search to continue through all 179 unprotected neurons in this dataset:
 
@@ -155,3 +161,7 @@ successive removals. Use independent stimuli or circuits for final evaluation.
 Only after that baseline is understood should this move to an annotated fly circuit
 and anatomical 3D rendering. A graph layout alone would not represent real neuron
 positions.
+
+A first trained predictor is now available in the [pruning GNN experiment](pruning_gnn.md).
+Its pilot reports both prediction quality and the simulator-verified comparison
+with static severity, including the additional cost of generating training labels.
