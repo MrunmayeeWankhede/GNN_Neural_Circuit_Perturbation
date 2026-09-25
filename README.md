@@ -492,7 +492,7 @@ same trap, and the library default isn't always right.
 |---|---|
 | clamped sensory neurons (25) | +0.007 |
 | all others (272) | +0.000 |
-| **posterior sensory neurons (12)** | **+0.358** |
+| **posterior sensory neurons (12)** | **+0.399** |
 
 The v1 finding is resolved — adding `baseline_activity` closed the sensory gap exactly
 as the v1 error analysis predicted. What's left is confined to a handful of tail
