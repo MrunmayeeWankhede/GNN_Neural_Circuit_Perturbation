@@ -19,8 +19,8 @@ MATCH  max activity INCREASE anywhere, unsigned model = 0.000e+00
 ==========================================================================
 CHAPTER 4.6  |  Pairwise epistasis (report: median 0.52% unsigned, 0.59% signed)
 ==========================================================================
-MATCH  unsigned: median |interaction| as % of additive = 0.510%   (max 0.7894)
-MATCH  signed  : median |interaction| as % of additive = 0.621%   (max 3.2945)
+MATCH  unsigned: median |interaction| as % of additive = 0.517%   (max 0.7894)
+MATCH  signed  : median |interaction| as % of additive = 0.587%   (max 3.2945)
 
 ==========================================================================
 CHAPTER 7.2-7.3  |  Self-inclusion inflation (report: 62.6% of motor severity, r=0.96)
@@ -85,9 +85,9 @@ CHAPTER 12.5  |  Residual structure (report: sensory +0.006, posterior sensory +
 ==========================================================================
 MATCH  mean residual, clamped sensory (25) = +0.007
 MATCH  mean residual, all others      (272) = +0.000
-MATCH  mean residual, posterior sensory (12) = +0.358
+MATCH  mean residual, posterior sensory (11) = +0.399
 MATCH  corr(residual, hop distance)          = -0.121
-       posterior set: ['PDEL', 'PDER', 'PHAL', 'PHAR', 'PHBL', 'PHBR', 'PHCL', 'PHCR', 'PQR', 'PVDL', 'PVDR', 'PVM']
+       posterior set: ['PDEL', 'PDER', 'PHAL', 'PHAR', 'PHBL', 'PHBR', 'PHCL', 'PHCR', 'PQR', 'PVDL', 'PVDR']
 
 ==========================================================================
 CHAPTER 8.6  |  GCN feature standardisation (report: 0.246 -> 0.457 -- YOURS WILL DIFFER)
