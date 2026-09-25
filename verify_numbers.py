@@ -1,12 +1,12 @@
 
 
 """
-verify_report_numbers.py
- 
+verify_numbers.py
+
 Recomputes every value marked [sandbox] in the project report, so they can be
 quoted as verified. Run from the repository root:
- 
-    python verify_report_numbers.py > results/verified_numbers.txt
+
+    python verify_numbers.py > results/verified_numbers.txt
  
 Output is organised by the report chapter each number appears in.
  
@@ -256,7 +256,7 @@ pred = cross_val_predict(LinearRegression(), X, y_log,
 res = y_log - pred
 is_sens = np.array([n in SENSORY for n in nodes])
 tail = [i for i, n in enumerate(nodes)
-        if n[:3] in ("PHA", "PHB", "PHC", "PVD", "PQR", "PLM", "PVM", "PDE")]
+        if n[:3] in ("PHA", "PHB", "PHC", "PVD", "PQR", "PDE")]
 print(f"MATCH  mean residual, clamped sensory ({int(is_sens.sum()):2d}) = {res[is_sens].mean():+.3f}")
 print(f"MATCH  mean residual, all others      ({int((~is_sens).sum()):3d}) = {res[~is_sens].mean():+.3f}")
 print(f"MATCH  mean residual, posterior sensory ({len(tail):2d}) = {res[tail].mean():+.3f}")
