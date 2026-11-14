@@ -55,10 +55,12 @@ def severity_table():
 
 #check for bilateral symmetry in the severities, and report the correlation and largest asymmetries
 def check_bilateral(sev, nodes):
-    #pair XXXL with XXXR, skipping ventral/dorsal names 
+    #pair XXXL with XXXR. Requiring the R partner to exist is enough to rule out
+    #unpaired names that merely end in L (AVL). An earlier version also skipped
+    #stems ending in D/V, which threw away 30 genuine pairs (AVDL/AVDR,
+    #RMDL/RMDR, PVDL/PVDR, IL1DL/IL1DR, ...).
     pairs = [(n, n[:-1] + "R") for n in nodes
-             if n.endswith("L") and (n[:-1] + "R") in sev
-             and not n[:-1].endswith(("D", "V"))]
+             if n.endswith("L") and (n[:-1] + "R") in sev]
     L = np.array([sev[a] for a, _ in pairs])
     R = np.array([sev[b] for _, b in pairs])
     lines = [
@@ -68,25 +70,29 @@ def check_bilateral(sev, nodes):
     ]
     rel = np.abs(L - R) / ((L + R) / 2 + 1e-9)
     lines.append(f"median relative L/R difference: {np.median(rel):.1%}")
-    lines.append("largest asymmetries (note these are all near-zero neurons):")
+    lines.append("largest relative asymmetries:")
     for k in np.argsort(-rel)[:5]:
         a, b = pairs[k]
         lines.append(f"    {a}/{b}: {sev[a]:.3f} vs {sev[b]:.3f}")
     return lines
 
 #check for known members of the mechanosensory escape circuit in the top N severities
-def check_known_circuit(sev, top_n=10):
+def check_known_circuit(sev, top_n=10, wide_n=50):
     ranked = sorted(sev, key=sev.get, reverse=True)
     top = ranked[:top_n]
     hits = [n for n in top if n in KNOWN_CIRCUIT]
     lines = [f"top {top_n} by severity: {', '.join(top)}",
              f"of these, mechanosensory escape circuit members: "
              f"{len(hits)}/{top_n} -> {', '.join(hits)}"]
+    present = [n for n in KNOWN_CIRCUIT if n in sev]
+    in_wide = sum(ranked.index(n) < wide_n for n in present)
+    lines.append(f"circuit members in top {wide_n}: {in_wide}/{len(present)} "
+                 f"(expected by chance: {len(present) * wide_n / len(ranked):.1f})")
     lines.append("rank of each known circuit member:")
     for n in sorted(KNOWN_CIRCUIT):
         if n in sev:
-            lines.append(f"{n:6s} rank {ranked.index(n)+1:3d} / {len(ranked)}"
-                         f"severity {sev[n]:.3f}")
+            lines.append(f"  {n:6s} rank {ranked.index(n)+1:3d} / {len(ranked)}"
+                         f"   severity {sev[n]:.3f}")
     return lines
 
 

@@ -11,9 +11,10 @@ centrality measures.
 
 Short version: The GCN lost at first. Auditing why led to finding that the benchmark
 itself was broken. 73% of the prediction target was recoverable in closed form, so no
-model could have learned much from it. After redesigning the task, the GCN wins, but
-only once message passing is oriented the right way. That direction mattered more than
-which model I used.
+model could have learned much from it. After redesigning the task, the GCN comes out
+on top, but only once message passing is oriented the right way — and its margin over
+the classical baselines is within fold-to-fold noise. The direction effect is the one
+result that holds up statistically; it mattered more than which model I used.
 
 
 ## 1. The biological system
@@ -86,7 +87,8 @@ activity spreading through the network, knock out each neuron in turn, and measu
 damage.
 
 Every neuron has an activity value. 25 sensory neurons are **clamped** to 1.0,
-representing constant sensory stimulation. Everything else starts at 0. Then one rule
+representing constant sensory stimulation. (The list in the code names 27; PLML and
+PLMR have no chemical synapses in this dataset, so they aren't in the graph.) Everything else starts at 0. Then one rule
 applies repeatedly:
 
 ```
@@ -180,7 +182,7 @@ than five summary statistics, would do better.
 The GCN lost, consistently, across several regularisation variants.
 
 Error analysis at the time turned up something useful: both model families made
-**highly correlated errors** (residual correlation 0.74) and failed on the same
+**highly correlated errors** (residual correlation 0.75) and failed on the same
 neurons, mostly sensory ones. When two structurally different models fail on the same
 points, that usually signals missing information rather than insufficient capacity. I
 concluded that better *features* were the bottleneck.
@@ -283,6 +285,11 @@ Methodologically, it forces the question to be about paths rather than degree.
 | signed, motor readout | 0.156 |
 | signed, motor readout, self-excluded | 0.280 |
 
+These are scored on the **raw** target with `KFold(5, shuffle=True, random_state=0)`
+(`audit_degeneracy.py`). They show the trend across task variants; they are *not*
+comparable to the model scores in Section 9, which use the log target and different
+folds. On that protocol the final variant's closed form scores 0.480 — see Section 9.
+
 ### Self-exclusion
 
 93 of the 297 neurons are themselves in the readout set. When one gets knocked out, its
@@ -375,7 +382,7 @@ Two checks that the labels track something real, neither involving a model.
 
 **Bilateral symmetry.** Most *C. elegans* neurons come in left/right pairs, anatomically
 equivalent but reconstructed independently in the original electron microscopy. Across
-67 pairs, severity correlates at Pearson 0.962 (Spearman 0.903). If the pipeline were
+97 pairs, severity correlates at Pearson 0.960 (Spearman 0.891). If the pipeline were
 just measuring reconstruction noise, it wouldn't.
 
 **Known circuit recovery.** The mechanosensory escape circuit wasn't used anywhere in
@@ -445,42 +452,62 @@ random_state=42)` — identical folds throughout, so comparisons are paired.
 
 | model | CV R² | std |
 |---|---|---|
-| closed form (no model) | 0.280 | — |
-| GBM, v1 hyperparameters | 0.460 | 0.083 |
-| Linear regression, 6 features | 0.492 | 0.107 |
-| GBM, default | 0.522 | 0.136 |
-| **GCN, downstream messages** | **0.548** | 0.117 |
 | GCN, upstream messages | 0.347 | 0.114 |
+| GBM, v1 hyperparameters | 0.460 | 0.083 |
+| closed form (no model) | 0.480 | 0.175 |
+| Linear regression, 6 features | 0.492 | 0.107 |
+| GBM, default | 0.519 | 0.139 |
+| **GCN, downstream messages** | **0.548** | 0.117 |
 
-Paired Wilcoxon signed-rank, 50 folds:
+Two things about this table.
 
-| comparison | mean difference | GCN wins | p |
-|---|---|---|---|
-| GCN − linear regression | +0.056 | 35/50 | 0.0008 |
-| GCN − GBM (tuned) | +0.087 | 39/50 | <0.0001 |
-| GCN − GBM (default) | +0.025 | 28/50 | 0.25 (n.s.) |
+*The closed form is not far behind.* An earlier version of this table listed it at
+0.280, but that was the raw-target score from the audit, on different folds. Scored
+like everything else here (one-feature linear fit of `baseline × |outgoing column sum|`
+to the log target, same folds) it reaches 0.480 — level with linear regression on six
+features. The redesigned task is less degenerate than v1 (0.69 on this protocol), not
+free of the first-order term.
 
-The GCN significantly beats linear regression and the tuned GBM, and ties the default
-GBM. Both significant results survive Bonferroni correction.
+*"GBM, v1 hyperparameters"* are settings carried over from version 1. They score below
+the defaults on this task, so they are not a tuned model.
+
+Paired tests over the 50 folds (`compare_models.py`):
+
+| comparison | mean difference | GCN wins | Wilcoxon p | corrected p |
+|---|---|---|---|---|
+| GCN − GCN upstream | +0.201 | 48/50 | <0.0001 | 0.0004 |
+| GCN − GBM (v1 hyperparameters) | +0.087 | 39/50 | <0.0001 | 0.15 |
+| GCN − closed form | +0.067 | 29/50 | 0.029 | 0.47 |
+| GCN − linear regression | +0.056 | 35/50 | 0.0008 | 0.33 |
+| GCN − GBM (default) | +0.028 | 30/50 | 0.22 | 0.66 |
+
+The Wilcoxon test treats the 50 fold scores as independent. They aren't: training sets
+overlap and the ten repeats reuse the same 297 neurons, which makes that test
+anti-conservative. The last column is the Nadeau–Bengio corrected resampled t-test,
+which accounts for the overlap. Under it, the GCN's lead over linear regression and
+both GBMs is **not significant** — the GCN has the highest mean, but this dataset
+can't separate it from the baselines. The direction effect is the only difference that
+survives.
 
 ### The comparison that matters more
 
 | effect | magnitude |
 |---|---|
 | **message-passing direction** | **+0.201** |
-| GCN over tuned GBM | +0.087 |
-| GCN over linear regression | +0.056 |
-| GCN over default GBM | +0.025 (n.s.) |
+| GCN over GBM, v1 hyperparameters | +0.087 (n.s.) |
+| GCN over linear regression | +0.056 (n.s.) |
+| GCN over default GBM | +0.028 (n.s.) |
 
 Orienting message passing along the causal direction of the perturbation is worth 2.3×
-the largest model-class difference and 8× the smallest.
+the largest model-class difference and 7× the smallest, and it is the only one of these
+that is statistically distinguishable from zero.
 
 So the headline finding isn't really "do GNNs help" — it's:
 
 > On a directed network with a directional readout, the orientation of message passing
 > dominates the choice of architecture. The same GCN moves from clearly worse than
-> linear regression to significantly better, depending only on which way the edges
-> point.
+> linear regression to level with or slightly ahead of it, depending only on which way
+> the edges point.
 
 That generalises: any GNN applied to a directed biological network — regulatory,
 metabolic, food web — where the target has a directional interpretation runs into the
@@ -492,10 +519,12 @@ same trap, and the library default isn't always right.
 |---|---|
 | clamped sensory neurons (25) | +0.007 |
 | all others (272) | +0.000 |
-| **posterior sensory neurons (12)** | **+0.399** |
+| **posterior sensory neurons (11)** | **+0.399** |
 
 The v1 finding is resolved — adding `baseline_activity` closed the sensory gap exactly
-as the v1 error analysis predicted. What's left is confined to a handful of tail
+as the v1 error analysis predicted. (Residuals here are from the linear model. The two
+model families still err on the same neurons: on the current task the linear and GCN
+residuals correlate at 0.75, the same as in v1 — `error_analysis.py`.) What's left is confined to a handful of tail
 neurons — PHA, PHB, PHC, PVD, PQR, PDE — and hop distance doesn't explain it (r = −0.12).
 My best guess is anatomical: posterior neurons reach motor output through few dedicated
 pathways, chiefly via PVC, while head neurons have redundant routes. Degree-based
@@ -516,8 +545,12 @@ being wrong.
 | unstandardised GCN features | 0.294 vs 0.463 |
 | reversed message-passing direction | 0.347 vs 0.548 |
 
-Every figure quoted in this README is reproduced by `verify_numbers.py`; output in
-`results/verified_numbers.txt`.
+The simulator-level figures in this README are reproduced by `verify_numbers.py`
+(output in `results/verified_numbers.txt`); the closed-form table by
+`audit_degeneracy.py`; the Section 7 checks by `validate_labels.py`; and the model
+scores and tests in Sections 8–9 by `train_baseline_models.py`, `train_gnn.py` and
+`compare_models.py`. Tree-model and GCN scores move in the third decimal across
+library versions; the numbers here are from the versions in `requirements.txt`.
 
 
 ## 11. Limitations
@@ -534,15 +567,16 @@ Every figure quoted in this README is reproduced by `verify_numbers.py`; output 
   deviation from a baseline rate rather than absolute rate.
 - **The gain parameter is arbitrary and matters.** Rank correlation between gain 1 and
   gain 3 is 0.57. AVAL and AVAR stay top-3 at every gain; the rest of the ranking
-  doesn't. Gain 1 is used because higher values saturate the network (89% of neurons
-  above 0.9 at gain 3).
+  doesn't. Gain 1 is used because higher values saturate the network (90% of neurons
+  above 0.9 in magnitude at gain 3).
 - **The motor set is defined by string matching on names**, not a curated annotation.
-- **19 pharyngeal neurons can't reach the motor set**, so 6% of the dataset has severity
-  identically zero.
+- **19 pharyngeal neurons can't reach the motor set.** Together with DD04–DD06, which have
+  no outgoing synapses onto other neurons, 22 neurons (7% of the dataset) have severity identically
+  zero.
 - **23 of the 26 inhibitory neurons are themselves motor neurons**, so almost all
   inhibition lives inside the readout population.
-- **297 nodes is small.** Fold-to-fold std is ~0.1; differences under ~0.05 aren't
-  resolvable without paired testing.
+- **297 nodes is small.** Fold-to-fold std is ~0.1, and with a test that accounts for
+  overlapping folds, model-class differences under ~0.1 R² aren't resolvable at all.
 - **`baseline_activity` isn't a pure graph feature** — it requires running the dynamics.
   Not leakage (it's computed before any knockout), but the honest claim is "from the
   wiring diagram and the healthy activity state it produces," not "from wiring alone."
@@ -557,29 +591,36 @@ Every figure quoted in this README is reproduced by `verify_numbers.py`; output 
 | `connectome_model_v2.py` | revised model incorporating the Section 5 fixes (motor readout, self-exclusion, log target) |
 | `baselines.py` | computes the five centrality measures |
 | `train_baseline_models.py` | linear regression and gradient boosting |
-| `train_gnn.py` | 2-layer GCN (PyTorch Geometric) |
+| `train_gnn.py` | 2-layer GCN (PyTorch Geometric); `--direction upstream` for the Section 8 comparison |
 | `audit_degeneracy.py` | tests whether the label is solvable in closed form |
-| `validate_lables.py` | bilateral symmetry and known-circuit checks |
-| `verify_numbers.py` | reproduces every number quoted here |
+| `validate_labels.py` | bilateral symmetry and known-circuit checks |
+| `verify_numbers.py` | reproduces the simulator-level numbers quoted here |
 | `compare_models.py` | paired significance tests across models |
-| `error_analysis.py` | per-neuron residual comparison |
+| `error_analysis.py` | per-neuron residual comparison (`--v1` for the original task) |
 | `debug.py` | scratch script used for interactive debugging during development |
+| `requirements.txt` | package versions the reported numbers were produced with |
 
 ### Reproducing
 
 ```bash
 conda create -n neuro-gnn python=3.11 -y
 conda activate neuro-gnn
-pip install pandas numpy scipy networkx matplotlib scikit-learn torch torch_geometric
+pip install -r requirements.txt
 
-python connectome_model.py      # generate labels
-python baselines.py             # centralities
-python audit_degeneracy.py      # is the task closed-form?
-python validate_lables.py       # sanity checks
+python connectome_model.py                 # downloads the data; v1 labels + figures
+python connectome_model_v2.py              # v2 labels (motor readout) - the models need these
+python baselines.py                        # centralities
+python audit_degeneracy.py                 # is the task closed-form?
+python validate_labels.py                  # sanity checks
 python train_baseline_models.py
-python train_gnn.py
-python compare_models.py        # paired tests
+python train_gnn.py                        # GCN, downstream messages
+python train_gnn.py --direction upstream   # GCN, PyG default orientation
+python compare_models.py                   # paired tests
+python error_analysis.py                   # per-neuron residuals (add --v1 for the v1 task)
+python verify_numbers.py > results/verified_numbers.txt
 ```
+
+Run them in this order — each script reads files the earlier ones write to `data/`.
 
 Connectome data downloads on first run from
 [OpenWorm](https://github.com/openworm/CElegansNeuroML).
