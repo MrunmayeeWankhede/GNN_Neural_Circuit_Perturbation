@@ -1,6 +1,6 @@
-#this script computes the classical graph centralities
-#trains simple baseline models (linear regression, gradient boosting) to predict cascade severity from structure alone
-#evaluates how well these models predict cascade severity compared to the GNN model
+#this script computes the classical graph centralities and saves them to data/neuron_centralities.csv
+#the models that use them live in train_baseline_models.py and train_gnn.py
+#run connectome_model.py first (it downloads the edge list)
 
 #import packages
 import pandas as pd
@@ -23,7 +23,7 @@ print("graph built:", G.number_of_nodes(), "nodes,", G.number_of_edges(), "edges
 
 #compute centralities
 def compute_centralities(G):
-    #compute 4 classical centrality measures for every neuron (node)
+    #compute 5 classical centrality measures for every neuron (node)
     #returns a dataframe eith 1 row per neuron and columns for each centrality measure
     #eigenvector centrality is computed only on the largest connected component
     #it is mathematically undefined for disconnected graphs

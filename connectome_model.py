@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
-import requests
 from pathlib import Path
 import urllib.request
 import re
@@ -31,7 +30,7 @@ output_path = data_path / "herm_full_edgelist.csv"
 #make a DiGraph (directed graph) using networkx
 
 #this next chunk of code loads the C. elegans connectome edge list
-#build a DAG of CHEMICAL synapses only
+#build a directed graph (it has cycles, so not a DAG) of CHEMICAL synapses only
 #and only those that connect neurons (not muscle or organ cells)
 
 
@@ -98,7 +97,7 @@ def normalize_weights(W):
 
     return W_normalized
 
-#iterate linear-threshold dynamics until activity converges
+#iterate the smooth recurrent map x <- tanh(W x) until activity converges
 def run_dynamics(W, nodes, sensory_idx, knockout_idx=None, max_iter=500, tol=1e-6):
     #returns the steady-state activity vector
     #pass knockput_idx=None for healthy condition
@@ -109,7 +108,7 @@ def run_dynamics(W, nodes, sensory_idx, knockout_idx=None, max_iter=500, tol=1e-
     x[sensory_idx] = 1.0 #activate sensory neurons
 
     for i in range(max_iter):
-        #weigjted input, squashed to range [0, 1] by tanh nonlinearity
+        #weighted input, squashed by tanh (stays in [0, 1] here because W and x are non-negative)
         x_new = np.tanh(W @ x) #update activity based on inputs and weights
         x_new[sensory_idx] = 1.0 #keep sensory neurons active
 

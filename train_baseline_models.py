@@ -8,8 +8,7 @@ import numpy as np
 from pathlib import Path
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import RepeatedKFold, cross_val_score, KFold
-from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.model_selection import RepeatedKFold, cross_val_score, cross_val_predict, KFold
 from scipy.stats import spearmanr
 
 CV = RepeatedKFold(n_splits=5, n_repeats=10, random_state=42)
@@ -42,14 +41,16 @@ print("mean R^2:", np.round(lin_scores.mean(), 3), "+/-", np.round(lin_scores.st
 
 #gradient boosting model
 gb_default = GradientBoostingRegressor(random_state=42)
-gb_tuned   = GradientBoostingRegressor(n_estimators=50, max_depth=2,
+#NOTE: these were chosen on the v1 task and score BELOW the defaults here, so they are
+#not "tuned" for this task - kept only so the v1 comparison stays reproducible
+gb_v1      = GradientBoostingRegressor(n_estimators=50, max_depth=2,
                                        learning_rate=0.05,
                                        min_samples_leaf=10, random_state=42)
 print()
 print("Gradient Boosting")
-for name, model in [("default", gb_default), ("tuned (v1 settings)", gb_tuned)]:
+for name, model in [("default", gb_default), ("v1 (settings carried over from version 1)", gb_v1)]:
     s = cross_val_score(model, x, y, cv=CV, scoring="r2")
-    print(f"  {name:20s} mean R^2 = {s.mean():.3f} +/- {s.std():.3f}  (n={len(s)})")
+    print(f"  {name:42s} mean R^2 = {s.mean():.3f} +/- {s.std():.3f}  (n={len(s)})")
 
     np.save(data_path / f"scores_gbm_{name.split()[0]}.npy", s)
 
@@ -61,9 +62,8 @@ print("Feature importances for Gradient Boosting:")
 print(importances.to_string(index=False))
 
 
-#diagbostic test
+#diagnostic test
 #see which neurons are the worst predicted by the linear regression model 
-from sklearn.model_selection import cross_val_predict
 y_pred = cross_val_predict(LinearRegression(), x, y, cv=KFold(5, shuffle=True, random_state=42))
 df_diag = df.copy()
 df_diag["log_severity"] = np.log1p(df_diag["severity"])

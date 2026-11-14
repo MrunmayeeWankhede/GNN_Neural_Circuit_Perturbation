@@ -1,11 +1,12 @@
-  applied negative sign to 26/26 inhibitory neurons
-  applied negative sign to 26/26 inhibitory neurons
-  applied negative sign to 26/26 inhibitory neurons
-closed_form_R2 HIGH  -> task is degenerate, nothing to learn
-closed_form_R2 LOW   -> label is not a simple function of the graph
-                             variant  closed_form_R2  GBM_R2  saturated
-unsigned, gain 1, global  [ORIGINAL]           0.730   0.713      0.000
-            signed,   gain 1, global           0.740   0.694      0.000
-             unsigned, gain 1, motor           0.130   0.443      0.000
-signed,   gain 1, motor   [PROPOSED]           0.156   0.375      0.000
-             signed,   gain 3, motor          -0.057   0.255      0.899
+closed_form_R2      raw target, KFold(5, shuffle, seed 0). HIGH -> task is degenerate
+closed_form_R2_log  log1p target, RepeatedKFold(5x10, seed 42) - the protocol the models
+                    are scored with, so THIS is the column comparable to model R2
+GBM_R2              raw target, GBM on [baseline, |W| col sum, out-degree, |W| row sum]
+
+                                       variant  closed_form_R2  closed_form_R2_log  GBM_R2  saturated
+          unsigned, gain 1, global  [ORIGINAL]           0.730               0.686   0.713      0.000
+                      signed,   gain 1, global           0.740               0.698   0.692      0.000
+                       unsigned, gain 1, motor           0.130               0.269   0.482      0.000
+          signed,   gain 1, motor   [PROPOSED]           0.156               0.304   0.365      0.000
+signed,   gain 1, motor, self-excluded [FINAL]           0.280               0.480   0.437      0.000
+                       signed,   gain 3, motor          -0.057              -0.043   0.261      0.899

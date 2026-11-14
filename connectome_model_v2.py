@@ -1,5 +1,5 @@
 """
-connectome_model.py  (v2)
+connectome_model_v2.py
 
 Changes from v1, and why:
   1. signed edges      - GABAergic neurons get negative outgoing weight, so the
@@ -57,7 +57,7 @@ def build_connectome_graph(df):
     sub = sub[mask]
     #build the directed graph from the filtered edge list
     G = nx.from_pandas_edgelist(sub, "Source", "Target", edge_attr="Weight", create_using=nx.DiGraph())
-    #resolve upper/lower case issues in node names 
+    #rename the edge attribute to the lowercase "weight" networkx expects
     for u, v, d in G.edges(data=True):
         d["weight"] = d.pop("Weight")
     return G
@@ -129,7 +129,7 @@ def normalize_weights(W):
     #row-normalize by sum of ABSOLUTE weight (coz negative weights exist)
     #axis=1 sums across each row
     rs = np.abs(W).sum(axis=1, keepdims=True)
-    #avoid division by zero for neurons with no outgoing synapses (isolated neurons)
+    #avoid division by zero for neurons with no incoming synapses (all-zero rows)
     rs[rs == 0] = 1.0
     #return the normalized weight matrix
     return W/rs
@@ -179,7 +179,9 @@ def run_dynamics(W, sensory_idx, knockout_idx=None, gain=1.0,
 def cascade_severity(baseline, perturbed, readout_idx, knockout_idx=None):
     ro = readout_idx
     if knockout_idx is not None:
-        ko = {knockout_idx} if isinstance(knockout_idx, int) else set(knockout_idx)
+        #np.integer too: indices coming out of numpy arrays are not python ints
+        ko = ({int(knockout_idx)} if isinstance(knockout_idx, (int, np.integer))
+              else {int(k) for k in knockout_idx})
         ro = [i for i in readout_idx if i not in ko]
     #do not consider the knocked-out neurons in the readout population when measuring severity
     drop = (baseline - perturbed)[ro]
@@ -197,7 +199,7 @@ def generate_dataset(W, nodes, sensory_idx, readout_idx, baseline, gain=1.0):
         perturbed, conv = run_dynamics(W, sensory_idx, knockout_idx=i, gain=gain)
         if conv is None:
             n_bad += 1
-        #merges the 4 severity metrics into a single record for the neuron, and appends it to the dataset
+        #merges the 3 severity metrics into a single record for the neuron, and appends it to the dataset
         rec = {"neuron": name}
         rec.update(cascade_severity(baseline, perturbed, readout_idx, knockout_idx=i))
         rows.append(rec)
@@ -228,7 +230,9 @@ if __name__ == "__main__":
     index = {n: i for i, n in enumerate(nodes)}
     sensory_idx = [index[s] for s in SENSORY if s in index]
     readout_idx = motor_neurons(nodes)
-    print(f"sensory (clamped inputs): {len(sensory_idx)}")
+    absent = [s for s in SENSORY if s not in index]
+    print(f"sensory (clamped inputs): {len(sensory_idx)} of {len(SENSORY)} listed"
+          + (f" (no chemical synapses, dropped: {absent})" if absent else ""))
     print(f"motor (readout set): {len(readout_idx)}")
 
     #run the dynamics with the sensory neurons clamped to 1.0, and measure the baseline activity of the network

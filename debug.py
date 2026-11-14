@@ -1,5 +1,8 @@
+from pathlib import Path
 import pandas as pd
-raw = pd.read_csv("data/herm_full_edgelist.csv")
+
+#run connectome_model.py first, it downloads the edge list
+raw = pd.read_csv(Path(__file__).resolve().parent / "data" / "herm_full_edgelist.csv")
 raw['Source'] = raw['Source'].str.strip()
 raw['Target'] = raw['Target'].str.strip()
 
